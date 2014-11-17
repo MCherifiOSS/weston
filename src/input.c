@@ -513,7 +513,7 @@ weston_pointer_set_default_grab(struct weston_pointer *pointer,
 }
 
 WL_EXPORT struct weston_keyboard *
-weston_keyboard_create(void)
+weston_keyboard_create(struct weston_seat *seat)
 {
 	struct weston_keyboard *keyboard;
 
@@ -526,7 +526,8 @@ weston_keyboard_create(void)
 	wl_list_init(&keyboard->focus_resource_listener.link);
 	keyboard->focus_resource_listener.notify = keyboard_focus_resource_destroyed;
 	wl_array_init(&keyboard->keys);
-	keyboard->default_grab.interface = &default_keyboard_grab_interface;
+	weston_keyboard_set_default_grab(keyboard,
+					seat->compositor->default_keyboard_grab);
 	keyboard->default_grab.keyboard = keyboard;
 	keyboard->grab = &keyboard->default_grab;
 	wl_signal_init(&keyboard->focus_signal);
@@ -771,6 +772,17 @@ static void
 weston_keyboard_cancel_grab(struct weston_keyboard *keyboard)
 {
 	keyboard->grab->interface->cancel(keyboard->grab);
+}
+
+void
+weston_keyboard_set_default_grab(struct weston_keyboard *keyboard,
+		const struct weston_keyboard_grab_interface *interface)
+{
+	if (interface)
+		keyboard->default_grab.interface = interface;
+	else
+		keyboard->default_grab.interface =
+			&default_keyboard_grab_interface;
 }
 
 WL_EXPORT void
@@ -2103,7 +2115,7 @@ weston_seat_init_keyboard(struct weston_seat *seat, struct xkb_keymap *keymap)
 		return 0;
 	}
 
-	keyboard = weston_keyboard_create();
+	keyboard = weston_keyboard_create(seat);
 	if (keyboard == NULL) {
 		weston_log("failed to allocate weston keyboard struct\n");
 		return -1;
