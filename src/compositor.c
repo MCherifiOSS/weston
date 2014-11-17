@@ -3811,6 +3811,21 @@ weston_compositor_set_default_pointer_grab(struct weston_compositor *ec,
 }
 
 WL_EXPORT void
+weston_compositor_set_default_keyboard_grab(struct weston_compositor *ec,
+            const struct weston_keyboard_grab_interface *interface)
+{
+    struct weston_seat *seat;
+
+    ec->default_keyboard_grab = interface;
+    wl_list_for_each(seat, &ec->seat_list, link) {
+        if (seat->keyboard) {
+            weston_keyboard_set_default_grab(seat->keyboard,
+                            interface);
+        }
+    }
+}
+
+WL_EXPORT void
 weston_version(int *major, int *minor, int *micro)
 {
 	*major = WESTON_VERSION_MAJOR;
@@ -4284,6 +4299,7 @@ int main(int argc, char *argv[])
 
 	ec->idle_time = idle_time;
 	ec->default_pointer_grab = NULL;
+	ec->default_keyboard_grab = NULL;
 
 	setenv("WAYLAND_DISPLAY", socket_name, 1);
 
