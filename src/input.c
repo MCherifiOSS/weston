@@ -564,7 +564,7 @@ weston_touch_reset_state(struct weston_touch *touch)
 }
 
 WL_EXPORT struct weston_touch *
-weston_touch_create(void)
+weston_touch_create(struct weston_seat *seat)
 {
 	struct weston_touch *touch;
 
@@ -578,7 +578,8 @@ weston_touch_create(void)
 	touch->focus_view_listener.notify = touch_focus_view_destroyed;
 	wl_list_init(&touch->focus_resource_listener.link);
 	touch->focus_resource_listener.notify = touch_focus_resource_destroyed;
-	touch->default_grab.interface = &default_touch_grab_interface;
+	weston_touch_set_default_grab(touch,
+					seat->compositor->default_touch_grab);
 	touch->default_grab.touch = touch;
 	touch->grab = &touch->default_grab;
 	wl_signal_init(&touch->focus_signal);
@@ -824,6 +825,17 @@ static void
 weston_touch_cancel_grab(struct weston_touch *touch)
 {
 	touch->grab->interface->cancel(touch->grab);
+}
+
+void
+weston_touch_set_default_grab(struct weston_touch *touch,
+		const struct weston_touch_grab_interface *interface)
+{
+	if (interface)
+		touch->default_grab.interface = interface;
+	else
+		touch->default_grab.interface =
+			&default_touch_grab_interface;
 }
 
 static void
@@ -2250,7 +2262,7 @@ weston_seat_init_touch(struct weston_seat *seat)
 		return;
 	}
 
-	touch = weston_touch_create();
+	touch = weston_touch_create(seat);
 	if (touch == NULL)
 		return;
 

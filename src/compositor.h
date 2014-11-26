@@ -409,7 +409,7 @@ weston_keyboard_set_default_grab(struct weston_keyboard* keyboard,
         const struct weston_keyboard_grab_interface *interface);
 
 struct weston_touch *
-weston_touch_create(void);
+weston_touch_create(struct weston_seat *seat);
 void
 weston_touch_destroy(struct weston_touch *touch);
 void
@@ -420,6 +420,9 @@ weston_touch_start_grab(struct weston_touch *device,
 			struct weston_touch_grab *grab);
 void
 weston_touch_end_grab(struct weston_touch *touch);
+void
+weston_touch_set_default_grab(struct weston_touch *keyboard,
+        const struct weston_touch_grab_interface *interface);
 
 void
 wl_data_device_set_keyboard_focus(struct weston_seat *seat);
@@ -641,6 +644,7 @@ struct weston_compositor {
 
 	const struct weston_pointer_grab_interface *default_pointer_grab;
 	const struct weston_keyboard_grab_interface *default_keyboard_grab;
+	const struct weston_touch_grab_interface *default_touch_grab;
 
 	/* Repaint state. */
 	struct weston_plane primary_plane;
@@ -1170,6 +1174,9 @@ weston_compositor_set_default_pointer_grab(struct weston_compositor *compositor,
 void
 weston_compositor_set_default_keyboard_grab(struct weston_compositor *compositor,
             const struct weston_keyboard_grab_interface *interface);
+void
+weston_compositor_set_default_touch_grab(struct weston_compositor *compositor,
+            const struct weston_touch_grab_interface *interface);
 
 int
 weston_environment_get_fd(const char *env);
