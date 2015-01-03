@@ -4471,13 +4471,6 @@ int main(int argc, char *argv[])
 	ec->default_pointer_grab = NULL;
 	ec->default_keyboard_grab = NULL;
 
-	for (i = 1; i < argc; i++)
-		weston_log("fatal: unhandled option: %s\n", argv[i]);
-	if (argc > 1) {
-		ret = EXIT_FAILURE;
-		goto out;
-	}
-
 	weston_compositor_log_capabilities(ec);
 
 	server_socket = getenv("WAYLAND_SERVER_SOCKET");
@@ -4519,6 +4512,13 @@ int main(int argc, char *argv[])
 
 	if (load_modules(ec, option_modules, &argc, argv) < 0)
 		goto out;
+
+	for (i = 1; i < argc; i++)
+		weston_log("fatal: unhandled option: %s\n", argv[i]);
+	if (argc > 1) {
+		ret = EXIT_FAILURE;
+		goto out;
+	}
 
 	section = weston_config_get_section(config, "keyboard", NULL, NULL);
 	weston_config_section_get_bool(section, "numlock-on", &numlock_on, 0);
