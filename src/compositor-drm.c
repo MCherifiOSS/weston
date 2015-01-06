@@ -752,6 +752,21 @@ err_pageflip:
 	return -1;
 }
 
+static uint32_t get_frame_finish_time(struct drm_compositor *compositor,
+        unsigned int sec, unsigned int usec)
+{
+    struct timespec ts;
+    uint32_t msec;
+
+    msec = sec * 1000 + usec / 1000;
+    if (!msec) {
+        clock_gettime(compositor->clock, &ts);
+        msec = ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+    }
+
+    return msec;
+}
+
 static void
 drm_output_start_repaint_loop(struct weston_output *output_base)
 {
@@ -760,7 +775,6 @@ drm_output_start_repaint_loop(struct weston_output *output_base)
 		output_base->compositor;
 	uint32_t fb_id;
 	uint32_t msec;
-	struct timespec ts;
 
 	if (output->destroy_pending)
 		return;
@@ -782,8 +796,7 @@ drm_output_start_repaint_loop(struct weston_output *output_base)
 
 finish_frame:
 	/* if we cannot page-flip, immediately finish frame */
-	clock_gettime(compositor->clock, &ts);
-	msec = ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+	msec = get_frame_finish_time(compositor, 0, 0);
 	weston_output_finish_frame(output_base, msec);
 }
 
@@ -793,6 +806,8 @@ vblank_handler(int fd, unsigned int frame, unsigned int sec, unsigned int usec,
 {
 	struct drm_sprite *s = (struct drm_sprite *)data;
 	struct drm_output *output = s->output;
+	struct drm_compositor *compositor = (struct drm_compositor *)
+		output->base.compositor;
 	uint32_t msecs;
 
 	output->vblank_pending = 0;
@@ -802,7 +817,7 @@ vblank_handler(int fd, unsigned int frame, unsigned int sec, unsigned int usec,
 	s->next = NULL;
 
 	if (!output->page_flip_pending) {
-		msecs = sec * 1000 + usec / 1000;
+		msecs = get_frame_finish_time(compositor, sec, usec);
 		weston_output_finish_frame(&output->base, msecs);
 	}
 }
@@ -815,6 +830,8 @@ page_flip_handler(int fd, unsigned int frame,
 		  unsigned int sec, unsigned int usec, void *data)
 {
 	struct drm_output *output = (struct drm_output *) data;
+	struct drm_compositor *compositor = (struct drm_compositor *)
+		output->base.compositor;
 	uint32_t msecs;
 
 	/* We don't set page_flip_pending on start_repaint_loop, in that case
@@ -831,7 +848,7 @@ page_flip_handler(int fd, unsigned int frame,
 	if (output->destroy_pending)
 		drm_output_destroy(&output->base);
 	else if (!output->vblank_pending) {
-		msecs = sec * 1000 + usec / 1000;
+		msecs = get_frame_finish_time(compositor, sec, usec);
 		weston_output_finish_frame(&output->base, msecs);
 
 		/* We can't call this from frame_notify, because the output's
