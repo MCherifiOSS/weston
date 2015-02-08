@@ -1621,6 +1621,12 @@ noop_grab_focus(struct weston_pointer_grab *grab)
 }
 
 static void
+noop_grab_axis(struct weston_pointer_grab *grab,
+		 uint32_t time, uint32_t axis, wl_fixed_t value)
+{
+}
+
+static void
 constrain_position(struct weston_move_grab *move, int *cx, int *cy)
 {
 	struct shell_surface *shsurf = move->base.shsurf;
@@ -1699,6 +1705,7 @@ static const struct weston_pointer_grab_interface move_grab_interface = {
 	noop_grab_focus,
 	move_grab_motion,
 	move_grab_button,
+	noop_grab_axis,
 	move_grab_cancel,
 };
 
@@ -1854,6 +1861,7 @@ static const struct weston_pointer_grab_interface resize_grab_interface = {
 	noop_grab_focus,
 	resize_grab_motion,
 	resize_grab_button,
+	noop_grab_axis,
 	resize_grab_cancel,
 };
 
@@ -2016,6 +2024,7 @@ static const struct weston_pointer_grab_interface busy_cursor_grab_interface = {
 	busy_cursor_grab_focus,
 	busy_cursor_grab_motion,
 	busy_cursor_grab_button,
+	noop_grab_axis,
 	busy_cursor_grab_cancel,
 };
 
@@ -3123,6 +3132,7 @@ static const struct weston_pointer_grab_interface popup_grab_interface = {
 	popup_grab_focus,
 	popup_grab_motion,
 	popup_grab_button,
+	noop_grab_axis,
 	popup_grab_cancel,
 };
 
@@ -4746,6 +4756,7 @@ static const struct weston_pointer_grab_interface rotate_grab_interface = {
 	noop_grab_focus,
 	rotate_grab_motion,
 	rotate_grab_button,
+	noop_grab_axis,
 	rotate_grab_cancel,
 };
 
