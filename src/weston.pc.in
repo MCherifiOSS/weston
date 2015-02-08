@@ -8,4 +8,5 @@ pkglibexecdir=${libexecdir}/@PACKAGE@
 Name: Weston Plugin API
 Description: Header files for Weston plugin development
 Version: @WESTON_VERSION@
+Requires: pixman-1
 Cflags: -I${includedir}
